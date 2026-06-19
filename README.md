@@ -48,28 +48,20 @@ npm run dev
 
 Open http://localhost:5173
 
-## Deploy to GitHub Pages
+## Deploy to GitHub Pages (fully automatic — no terminal needed)
 
-1. Install gh-pages:
-```bash
-npm install --save-dev gh-pages
-```
+This project includes a GitHub Actions workflow that builds and publishes the app automatically every time you push, straight from GitHub Desktop. You only need to do this **once**:
 
-2. Add to `package.json` scripts:
-```json
-"predeploy": "npm run build",
-"deploy": "gh-pages -d dist"
-```
+1. Push this project to a GitHub repository (e.g. via GitHub Desktop → "Publish repository")
+2. On GitHub.com, go to your repo → **Settings** → **Pages**
+3. Under "Build and deployment" → **Source**, select **GitHub Actions** (not "Deploy from a branch")
+4. Go to the **Actions** tab in your repo — you should see a workflow run start automatically (it runs on every push to `main`)
+5. Wait about 1–2 minutes for it to finish (green checkmark ✅)
+6. Your site is live at `https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/`
 
-3. Add `base` to `vite.config.js`:
-```js
-base: '/YOUR-REPO-NAME/',
-```
+From now on, every time you commit and push changes (even from GitHub Desktop, no terminal needed), the site rebuilds and updates automatically within a minute or two.
 
-4. Deploy:
-```bash
-npm run deploy
-```
+**Note:** the `base` path in `vite.config.js` is auto-detected from your repo name during the GitHub Actions build, so you never need to edit it manually.
 
 ## How to use
 
