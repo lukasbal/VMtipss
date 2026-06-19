@@ -48,8 +48,11 @@ function parseEspnEvents(events) {
     const ourMatch = MATCHES.find(m => m.id === ourMatchId);
     const ourHomeIsEspnHome = toEnglish(ourMatch.home) === homeName;
 
-    const espnHomeGoals = home.score !== undefined ? Number(home.score) : null;
-    const espnAwayGoals = away.score !== undefined ? Number(away.score) : null;
+    // ESPN returns score: "0" for matches that haven't started yet (not null/undefined),
+    // so we must gate on status, not on the presence of a score value.
+    const hasStarted = status === 'live' || status === 'final';
+    const espnHomeGoals = hasStarted && home.score !== undefined ? Number(home.score) : null;
+    const espnAwayGoals = hasStarted && away.score !== undefined ? Number(away.score) : null;
 
     out[ourMatchId] = {
       status,
