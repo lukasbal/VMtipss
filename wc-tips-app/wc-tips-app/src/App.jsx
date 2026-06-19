@@ -1,0 +1,154 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import Leaderboard from './components/Leaderboard';
+import Matches from './components/Matches';
+import PlayerDetail from './components/PlayerDetail';
+import AdminPanel from './components/AdminPanel';
+import BonusPanel from './components/BonusPanel';
+import { PLAYERS, MATCHES } from './data/gameData';
+import { calcLeaderboard, mergeLiveResults } from './data/scoring';
+import { useLiveResults } from './hooks/useLiveResults';
+
+const STORAGE_KEY = 'wc2026_results';
+const BONUS_KEY = 'wc2026_bonus';
+
+function loadResults() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function loadBonus() {
+  try {
+    const raw = localStorage.getItem(BONUS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+export default function App() {
+  const [tab, setTab] = useState('leaderboard');
+  const [results, setResults] = useState(loadResults);
+  const [bonusResults, setBonusResults] = useState(loadBonus);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [bonusOpen, setBonusOpen] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+
+  const { liveData, lastFetch, error: liveError } = useLiveResults();
+
+  const mergedResults = useMemo(
+    () => mergeLiveResults(results, liveData),
+    [results, liveData]
+  );
+
+  const hasLiveMatch = useMemo(
+    () => Object.values(mergedResults).some(r => r.live),
+    [mergedResults]
+  );
+
+  const saveResults = (r) => {
+    setResults(r);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
+    setLastUpdated(Date.now());
+  };
+
+  const saveBonus = (b) => {
+    setBonusResults(b);
+    localStorage.setItem(BONUS_KEY, JSON.stringify(b));
+    setLastUpdated(Date.now());
+  };
+
+  const leaderboard = calcLeaderboard(PLAYERS, mergedResults, bonusResults);
+
+  const playedCount = MATCHES.filter(m => mergedResults[m.id]?.homeGoals !== undefined).length;
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div className="header-inner">
+          <div className="header-brand">
+            <span className="header-trophy">🏆</span>
+            <div>
+              <h1 className="header-title">VM Tips 2026</h1>
+              <p className="header-sub">{playedCount} / {MATCHES.length} kampe spillet</p>
+            </div>
+          </div>
+          <div className="header-actions">
+            <button className="btn-ghost" onClick={() => setBonusOpen(true)} title="Bonus svar">
+              ⭐ Bonus
+            </button>
+            <button className="btn-ghost" onClick={() => setAdminOpen(true)} title="Opdater resultater">
+              ✏️ Resultater
+            </button>
+          </div>
+        </div>
+        {hasLiveMatch && (
+          <div className="live-banner">
+            <span className="live-dot" /> LIVE — kampe i gang lige nu
+          </div>
+        )}
+        {liveError && (
+          <div className="sync-error-banner">
+            ⚠️ Kunne ikke synkronisere live-resultater automatisk. Brug ✏️ Resultater til at indtaste manuelt.
+          </div>
+        )}
+      </header>
+
+      <nav className="tabs">
+        {[
+          { id: 'leaderboard', label: '🏅 Stilling' },
+          { id: 'matches', label: '⚽ Kampe' },
+        ].map(t => (
+          <button
+            key={t.id}
+            className={`tab ${tab === t.id ? 'tab--active' : ''}`}
+            onClick={() => { setTab(t.id); setSelectedPlayer(null); }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
+      <main className="main">
+        {tab === 'leaderboard' && !selectedPlayer && (
+          <Leaderboard
+            leaderboard={leaderboard}
+            onSelectPlayer={(p) => { setSelectedPlayer(p); setTab('matches'); }}
+          />
+        )}
+        {tab === 'matches' && !selectedPlayer && (
+          <Matches
+            results={mergedResults}
+            onSelectPlayer={(p) => setSelectedPlayer(p)}
+            leaderboard={leaderboard}
+          />
+        )}
+        {selectedPlayer && (
+          <PlayerDetail
+            player={selectedPlayer}
+            results={mergedResults}
+            bonusResults={bonusResults}
+            leaderboard={leaderboard}
+            onBack={() => setSelectedPlayer(null)}
+          />
+        )}
+      </main>
+
+      {adminOpen && (
+        <AdminPanel
+          results={results}
+          onSave={saveResults}
+          onClose={() => setAdminOpen(false)}
+        />
+      )}
+
+      {bonusOpen && (
+        <BonusPanel
+          bonusResults={bonusResults}
+          onSave={saveBonus}
+          onClose={() => setBonusOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
