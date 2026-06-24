@@ -7,7 +7,7 @@ export const TEAM_NAME_MAP = {
   'Sydkorea': 'South Korea',
   'Tjekkiet': 'Czechia',
   'Canada': 'Canada',
-  'Bosnien-Hercegovina': 'Bosnia and Herzegovina',
+  'Bosnien-Hercegovina': 'Bosnia-Herzegovina',
   'USA': 'United States',
   'Paraguay': 'Paraguay',
   'Qatar': 'Qatar',
