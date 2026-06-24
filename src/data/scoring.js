@@ -1,17 +1,18 @@
 import { MATCHES, PREDICTIONS, BONUS_PREDICTIONS, SCORING } from './gameData';
 
-// Merge live ESPN data with manually-entered results.
-// Manual results (entered via admin panel) always win for a given match if present;
-// otherwise live data is used. Each entry also carries a `live` boolean + status.
-export function mergeLiveResults(manualResults, liveData) {
+// Merge live ESPN data with shared manual overrides (from overrides.json).
+// Shared overrides always win for a given match if present (e.g. corrections,
+// or matches ESPN doesn't have); otherwise live ESPN data is used.
+// Each entry also carries a `live` boolean + status.
+export function mergeLiveResults(overrides, liveData) {
   const merged = {};
   MATCHES.forEach(m => {
-    const manual = manualResults[m.id];
+    const override = overrides[m.id];
     const live = liveData[m.id];
 
-    if (manual && manual.homeGoals !== undefined && manual.awayGoals !== undefined) {
-      // Manual entry always takes precedence (e.g. corrections, or matches ESPN doesn't have)
-      merged[m.id] = { ...manual, live: false, status: 'final' };
+    if (override && override.homeGoals !== undefined && override.awayGoals !== undefined) {
+      // Shared override always takes precedence
+      merged[m.id] = { ...override, live: false, status: 'final' };
       return;
     }
 

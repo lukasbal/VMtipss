@@ -188,6 +188,13 @@ button { cursor: pointer; border: none; background: none; color: inherit; font: 
 .score-sep { color: var(--text3); }
 .clear-btn { color: var(--red); font-size: 0.75rem; padding: 0.25rem; }
 .modal-footer { display: flex; gap: 0.5rem; padding: 1rem; border-top: 1px solid var(--border); }
+.modal-footer--column { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+.publish-instructions { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.75rem; font-size: 0.78rem; color: var(--text2); line-height: 1.5; }
+.publish-instructions strong { color: var(--text); display: block; margin-bottom: 0.4rem; }
+.publish-instructions ol { padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.2rem; }
+.publish-instructions code { background: var(--bg4); padding: 0.1rem 0.35rem; border-radius: 3px; font-size: 0.75rem; color: var(--accent); }
+.footer-buttons { display: flex; gap: 0.5rem; }
+.footer-buttons .btn-primary, .footer-buttons .btn-secondary { flex: 1; }
 .btn-primary { flex: 1; background: var(--accent); color: #000; font-weight: 700; border-radius: var(--radius-sm); padding: 0.65rem; font-size: 0.9rem; transition: opacity 0.15s; }
 .btn-primary:hover { opacity: 0.9; }
 .btn-secondary { background: var(--bg3); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 0.65rem 1rem; font-size: 0.9rem; }

@@ -7,34 +7,21 @@ import BonusPanel from './components/BonusPanel';
 import { PLAYERS, MATCHES } from './data/gameData';
 import { calcLeaderboard, mergeLiveResults } from './data/scoring';
 import { useLiveResults } from './hooks/useLiveResults';
-
-const STORAGE_KEY = 'wc2026_results';
-const BONUS_KEY = 'wc2026_bonus';
-
-function loadResults() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
-
-function loadBonus() {
-  try {
-    const raw = localStorage.getItem(BONUS_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
+import { useSharedOverrides } from './hooks/useSharedOverrides';
 
 export default function App() {
   const [tab, setTab] = useState('leaderboard');
-  const [results, setResults] = useState(loadResults);
-  const [bonusResults, setBonusResults] = useState(loadBonus);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [adminOpen, setAdminOpen] = useState(false);
   const [bonusOpen, setBonusOpen] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(Date.now());
 
-  const { liveData, lastFetch, error: liveError } = useLiveResults();
+  const { liveData, error: liveError } = useLiveResults();
+  const { overrides, refetch: refetchOverrides } = useSharedOverrides();
+
+  // overrides.json holds both match-result corrections and bonus answers,
+  // keyed separately so they don't collide.
+  const results = overrides.results || {};
+  const bonusResults = overrides.bonus || {};
 
   const mergedResults = useMemo(
     () => mergeLiveResults(results, liveData),
@@ -45,18 +32,6 @@ export default function App() {
     () => Object.values(mergedResults).some(r => r.live),
     [mergedResults]
   );
-
-  const saveResults = (r) => {
-    setResults(r);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
-    setLastUpdated(Date.now());
-  };
-
-  const saveBonus = (b) => {
-    setBonusResults(b);
-    localStorage.setItem(BONUS_KEY, JSON.stringify(b));
-    setLastUpdated(Date.now());
-  };
 
   const leaderboard = calcLeaderboard(PLAYERS, mergedResults, bonusResults);
 
@@ -137,16 +112,16 @@ export default function App() {
       {adminOpen && (
         <AdminPanel
           results={results}
-          onSave={saveResults}
-          onClose={() => setAdminOpen(false)}
+          fullOverrides={overrides}
+          onClose={() => { setAdminOpen(false); refetchOverrides(); }}
         />
       )}
 
       {bonusOpen && (
         <BonusPanel
           bonusResults={bonusResults}
-          onSave={saveBonus}
-          onClose={() => setBonusOpen(false)}
+          fullOverrides={overrides}
+          onClose={() => { setBonusOpen(false); refetchOverrides(); }}
         />
       )}
     </div>

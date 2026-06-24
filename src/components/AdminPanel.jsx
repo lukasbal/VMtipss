@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { MATCHES } from '../data/gameData';
 
-export default function AdminPanel({ results, onSave, onClose }) {
+export default function AdminPanel({ results, fullOverrides, onClose }) {
   const [local, setLocal] = useState(() => {
     const copy = {};
-    Object.entries(results).forEach(([k, v]) => { copy[k] = { ...v }; });
+    Object.entries(results).forEach(([k, v]) => { copy[k] = { homeGoals: v.homeGoals, awayGoals: v.awayGoals }; });
     return copy;
   });
   const [filter, setFilter] = useState('upcoming');
   const [search, setSearch] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleSet = (matchId, field, val) => {
     setLocal(prev => ({
@@ -25,13 +26,24 @@ export default function AdminPanel({ results, onSave, onClose }) {
     });
   };
 
-  const handleSave = () => {
+  const buildOverridesJson = () => {
     const clean = {};
     Object.entries(local).forEach(([k, v]) => {
       if (v.homeGoals !== undefined && v.awayGoals !== undefined) clean[k] = v;
     });
-    onSave(clean);
-    onClose();
+    const next = { ...fullOverrides, results: clean };
+    return JSON.stringify(next, null, 2);
+  };
+
+  const handleCopy = async () => {
+    const json = buildOverridesJson();
+    try {
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Clipboard API unavailable — fall back to selecting the textarea
+    }
   };
 
   const filtered = MATCHES.filter(m => {
@@ -54,7 +66,7 @@ export default function AdminPanel({ results, onSave, onClose }) {
         </div>
 
         <div className="admin-live-note">
-          🔴 Live-kampe og afsluttede resultater synkroniseres automatisk fra ESPN. Brug kun dette panel hvis et resultat er forkert, eller for kampe der ikke opdateres automatisk.
+          🔴 Live-kampe og afsluttede resultater synkroniseres automatisk fra ESPN. Brug kun dette panel til at <strong>rette</strong> et forkert resultat, eller tilføje en kamp ESPN ikke fanger. Efter du committer ændringen på GitHub, kan det tage et par minutter før alle ser det (GitHub Pages cacher filer kortvarigt).
         </div>
 
         <div className="modal-controls">
@@ -111,9 +123,23 @@ export default function AdminPanel({ results, onSave, onClose }) {
           })}
         </div>
 
-        <div className="modal-footer">
-          <button className="btn-secondary" onClick={onClose}>Annuller</button>
-          <button className="btn-primary" onClick={handleSave}>Gem resultater</button>
+        <div className="modal-footer modal-footer--column">
+          <div className="publish-instructions">
+            <strong>Sådan deler du rettelsen med alle:</strong>
+            <ol>
+              <li>Tryk "Kopiér JSON" herunder</li>
+              <li>Gå til <code>overrides.json</code> i dit GitHub-repo (i mappen <code>public</code>)</li>
+              <li>Tryk på blyant-ikonet (✏️ "Edit") øverst til højre på filen</li>
+              <li>Markér alt indhold, slet det, og indsæt det du har kopieret</li>
+              <li>Tryk "Commit changes" nederst på siden</li>
+            </ol>
+          </div>
+          <div className="footer-buttons">
+            <button className="btn-secondary" onClick={onClose}>Luk</button>
+            <button className="btn-primary" onClick={handleCopy}>
+              {copied ? '✅ Kopieret!' : '📋 Kopiér JSON'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

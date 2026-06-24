@@ -5,7 +5,7 @@ const GROUP_FINISH_KEYS = [
   'G4', 'H2', 'I3', 'J4', 'K3', 'L1',
 ];
 
-export default function BonusPanel({ bonusResults, onSave, onClose }) {
+export default function BonusPanel({ bonusResults, fullOverrides, onClose }) {
   const [local, setLocal] = useState(() => ({
     groupFinishes: { ...(bonusResults.groupFinishes || {}) },
     r16: [...(bonusResults.r16 || [])],
@@ -14,23 +14,34 @@ export default function BonusPanel({ bonusResults, onSave, onClose }) {
     topscorer: bonusResults.topscorer || '',
     winner: bonusResults.winner || '',
   }));
+  const [copied, setCopied] = useState(false);
 
   const setGF = (key, val) => {
     setLocal(prev => ({ ...prev, groupFinishes: { ...prev.groupFinishes, [key]: val } }));
   };
 
   const setList = (field, val) => {
-    // Comma-separated to array
     const arr = val.split(',').map(s => s.trim()).filter(Boolean);
     setLocal(prev => ({ ...prev, [field]: arr }));
   };
 
-  const handleSave = () => {
+  const buildOverridesJson = () => {
     const clean = { ...local };
     if (!clean.topscorer) delete clean.topscorer;
     if (!clean.winner) delete clean.winner;
-    onSave(clean);
-    onClose();
+    const next = { ...fullOverrides, bonus: clean };
+    return JSON.stringify(next, null, 2);
+  };
+
+  const handleCopy = async () => {
+    const json = buildOverridesJson();
+    try {
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Clipboard API unavailable
+    }
   };
 
   return (
@@ -115,9 +126,23 @@ export default function BonusPanel({ bonusResults, onSave, onClose }) {
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button className="btn-secondary" onClick={onClose}>Annuller</button>
-          <button className="btn-primary" onClick={handleSave}>Gem bonus</button>
+        <div className="modal-footer modal-footer--column">
+          <div className="publish-instructions">
+            <strong>Sådan deler du det med alle:</strong>
+            <ol>
+              <li>Tryk "Kopiér JSON" herunder</li>
+              <li>Gå til <code>overrides.json</code> i dit GitHub-repo (i mappen <code>public</code>)</li>
+              <li>Tryk på blyant-ikonet (✏️ "Edit") øverst til højre på filen</li>
+              <li>Markér alt indhold, slet det, og indsæt det du har kopieret</li>
+              <li>Tryk "Commit changes" nederst på siden</li>
+            </ol>
+          </div>
+          <div className="footer-buttons">
+            <button className="btn-secondary" onClick={onClose}>Luk</button>
+            <button className="btn-primary" onClick={handleCopy}>
+              {copied ? '✅ Kopieret!' : '📋 Kopiér JSON'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
