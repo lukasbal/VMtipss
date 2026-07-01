@@ -326,7 +326,7 @@ export const BONUS_PREDICTIONS = {
     winner: 'Spanien',
   },
   magnus: {
-    groupFinishes: { A1: 'Mexico', B2: 'Canada', C3: 'Australien', D1: 'Brasilien', E2: 'Ecuador', F4: 'Tunesien', G4: 'New Zealand', H2: 'Uruguay', I3: 'Senegal', J4: 'Jordan', K3: 'DR Congo', L1: 'England' },
+    groupFinishes: { A1: 'Mexico', B2: 'Canada', C3: 'Skotland', D1: 'Australien', E2: 'Ecuador', F4: 'Tunesien', G4: 'New Zealand', H2: 'Uruguay', I3: 'Senegal', J4: 'Jordan', K3: 'DR Congo', L1: 'England' },
     r16: ['Argentina', 'Spanien', 'Frankrig', 'Holland', 'Colombia', 'England', 'Brasilien', 'Portugal'],
     qf: ['Frankrig', 'Spanien', 'Argentina', 'England'],
     sf: ['Spanien', 'England'],
